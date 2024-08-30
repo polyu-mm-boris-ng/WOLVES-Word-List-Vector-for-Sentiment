@@ -1,0 +1,30 @@
+clear
+insheet using  "C:\Users\Jason\Documents\stata\dynamic\jmis\cc.csv"
+
+gen report = 0
+replace report = 1 if source =="report"
+gen year_gap = year - 1997
+
+gen positive_word = sentiment==1
+gen negative_word = sentiment==0
+
+
+gen only_mc_words = mc_word==1
+gen after_lm = year>2011
+gen after_404 = year>2002
+
+encode source, gen(source_code)
+encode word, gen(word_code)
+**** source_code#word_code
+
+********************* Generate Tables *********************
+gen YearNumber = year_gap
+gen Intensity = score
+## Table 2
+reghdfe  Intensity     c.YearNumber##c.report  average_tf group_distance if sentiment==1&only_mc_words, absorb(word_source ) cluster(word_source year)
+reghdfe  Intensity     c.YearNumber##c.report  average_tf group_distance if sentiment==0&only_mc_words, absorb(word_source ) cluster(word_source year)
+
+
+## Table 4
+reghdfe  Intensity     c.report##c.after_lm  average_tf group_distance if sentiment==1&only_mc_words, absorb(word_source ) cluster(word_source year)
+reghdfe  Intensity     c.report##c.after_lm  average_tf group_distance if sentiment==0&only_mc_words, absorb(word_source ) cluster(word_source year)
